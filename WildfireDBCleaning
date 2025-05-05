@@ -308,3 +308,9 @@ ExoticAnnualGrass
 Medusahead
 PoaSecunda
 geometry -- ID not necessary for finding patterns; but may be useful if we later wish to graph the data on a map
+
+Further notes:
+Many variables include different summary versions of themselves. Some may be helpful, such as rain over some number of days before the event vs. average rainfall in the area. But other similar variables may be dropped later.
+Some variables are only used during some years! We will see exactly how few or how many years via graphing and decide how much that matters based on that.
+Data needs to labeled by type aswell (before graphing). Some variables are mixed (ex: EVT_1km) so those may need to be dropped or recalibrated.
+New variable to be created: duration_of_fire; subtract discovery date and containment date.
