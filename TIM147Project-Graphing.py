@@ -227,7 +227,7 @@ df = pd.read_csv(
 print("Loaded data successfully.")
 print(df.dtypes)
 
-# Assuming df is loaded successfully
+# Code tested until here
 
 # Categorical columns: these are columns that are objects or categories
 categorical_cols = df.select_dtypes(include=['object']).columns
