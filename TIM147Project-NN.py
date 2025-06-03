@@ -96,4 +96,62 @@ for epoch in range(50):
 # ==== STEP 8: Load Best Model (Optional) ====
 # model.load_state_dict(torch.load("best_fire_model.pt"))
 
-# TODO: Create visualizations
+# Create visualizations
+import matplotlib.pyplot as plt
+
+# ==== Evaluate on validation set ====
+model.eval()
+with torch.no_grad():
+    predictions = model(X_val_tensor.to(device)).cpu().numpy()
+    actuals = y_val_tensor.numpy()
+
+# ==== Plot Loss Curves ====
+# You need to save train and val losses during training loop
+# So first modify training loop above to include:
+train_losses = []
+val_losses = []
+
+# Inside your training loop:
+# Append inside each epoch
+train_losses.append(total_loss)
+val_losses.append(val_loss)
+
+# After training:
+plt.figure(figsize=(10, 5))
+plt.plot(train_losses, label='Train Loss')
+plt.plot(val_losses, label='Validation Loss')
+plt.title("Loss Curve")
+plt.xlabel("Epoch")
+plt.ylabel("MSE Loss")
+plt.legend()
+plt.grid(True)
+plt.show()
+
+# ==== Plot Predicted vs Actual ====
+output_labels = ["EALR_PFS", "EBLR_PFS", "EPLR_PFS"]
+'''
+for i in range(3):
+    plt.figure(figsize=(10, 4))
+    plt.plot(actuals[:, i], label=f'Actual {output_labels[i]}', alpha=0.7)
+    plt.plot(predictions[:, i], label=f'Predicted {output_labels[i]}', alpha=0.7)
+    plt.title(f'Prediction vs Actual for {output_labels[i]}')
+    plt.xlabel('Sample')
+    plt.ylabel('Value')
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()
+import numpy as np
+'''
+# ==== Print Predictions vs Actuals ====
+output_labels = ["EALR_PFS", "EBLR_PFS", "EPLR_PFS"]
+
+print(f"{'Sample':<8} | {'Actual':<45} | {'Predicted'}")
+print("-" * 80)
+
+for i in range(10):  # First 10 samples
+    actual = actuals[i]
+    pred = predictions[i]
+    actual_str = ", ".join(f"{val:.4f}" for val in actual)
+    pred_str = ", ".join(f"{val:.4f}" for val in pred)
+    print(f"{i:<8} | {actual_str:<45} | {pred_str}")
