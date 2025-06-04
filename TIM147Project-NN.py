@@ -10,7 +10,7 @@ from sklearn.model_selection import train_test_split
 
 # ==== STEP 1: Define Features and Targets ====
 categorical_cols = ["OWNER_DESCR", "STATE", "Des_Tp", "EVT", "NPL", "FRG"]
-X = train_df[["DISCOVERY_DOY","FIRE_SIZE","LATITUDE","LONGITUDE","OWNER_DESCR","STATE","Des_Tp","EVT","rpms","pr_Normal","tmmn_Normal","tmmx_Normal","sph_Normal","srad_Normal","fm100_Normal","fm1000_Normal","bi_Normal","vpd_Normal","erc_Normal","DSF_PFS","EBF_PFS","EALR_PFS","EBLR_PFS","EPLR_PFS","PM25F_PFS","MHVF_PFS","LPF_PFS","NPL","RMP_PFS","TSDF_PFS","FRG","TRI_1km","Aspect_1km","Elevation_1km","Slope_1km","GHM","TPI_1km","RPL_THEMES","SDI","Annual_etr","Annual_precipitation","Annual_tempreture","Aridity_index","rmin","rmax","vs","NDVI-1day","CheatGrass","ExoticAnnualGrass","Medusahead","PoaSecunda"]]
+X = train_df[["DISCOVERY_DOY","FIRE_SIZE","LATITUDE","LONGITUDE","OWNER_DESCR","STATE","Des_Tp","EVT","rpms","pr_Normal","tmmn_Normal","tmmx_Normal","sph_Normal","srad_Normal","fm100_Normal","fm1000_Normal","bi_Normal","vpd_Normal","erc_Normal","DSF_PFS","EBF_PFS","PM25F_PFS","MHVF_PFS","LPF_PFS","NPL","RMP_PFS","TSDF_PFS","FRG","TRI_1km","Aspect_1km","Elevation_1km","Slope_1km","GHM","TPI_1km","RPL_THEMES","SDI","Annual_etr","Annual_precipitation","Annual_tempreture","Aridity_index","rmin","rmax","vs","NDVI-1day","CheatGrass","ExoticAnnualGrass","Medusahead","PoaSecunda"]]
 Y = train_df[["EALR_PFS", "EBLR_PFS", "EPLR_PFS"]]
 
 numerical_cols = [col for col in X.columns if col not in categorical_cols]
@@ -63,6 +63,8 @@ loss_fn = nn.MSELoss()
 
 # ==== STEP 7: Training Loop ====
 best_val_loss = float('inf')
+train_losses = []
+val_losses = []
 
 for epoch in range(50):
     model.train()
@@ -86,6 +88,9 @@ for epoch in range(50):
             val_output = model(X_val_batch)
             val_loss += loss_fn(val_output, y_val_batch).item()
 
+    train_losses.append(total_loss)
+    val_losses.append(val_loss)
+
     print(f"Epoch {epoch + 1}, Train Loss: {total_loss:.4f}, Val Loss: {val_loss:.4f}")
 
     # Save best model
@@ -105,17 +110,7 @@ with torch.no_grad():
     predictions = model(X_val_tensor.to(device)).cpu().numpy()
     actuals = y_val_tensor.numpy()
 
-# ==== Plot Loss Curves ====
-# You need to save train and val losses during training loop
-# So first modify training loop above to include:
-train_losses = []
-val_losses = []
-
-# Inside your training loop:
-# Append inside each epoch
-train_losses.append(total_loss)
-val_losses.append(val_loss)
-
+# Plot Loss Curves
 # After training:
 plt.figure(figsize=(10, 5))
 plt.plot(train_losses, label='Train Loss')
@@ -127,22 +122,48 @@ plt.legend()
 plt.grid(True)
 plt.show()
 
-# ==== Plot Predicted vs Actual ====
+# Graphs
 output_labels = ["EALR_PFS", "EBLR_PFS", "EPLR_PFS"]
-'''
+from sklearn.metrics import r2_score
+
+for i in range(3):
+    plt.figure(figsize=(6, 6))
+    plt.scatter(actuals[:, i], predictions[:, i], alpha=0.5)
+    plt.plot([0, 1], [0, 1], 'r--')  # perfect prediction line
+    plt.title(f'{output_labels[i]}: Predicted vs Actual')
+    plt.xlabel('Actual')
+    plt.ylabel('Predicted')
+    r2 = r2_score(actuals[:, i], predictions[:, i])
+    plt.text(0.05, 0.9, f"R² = {r2:.2f}", transform=plt.gca().transAxes)
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()
+
+sample_range = 50  # number of samples to plot
+
 for i in range(3):
     plt.figure(figsize=(10, 4))
-    plt.plot(actuals[:, i], label=f'Actual {output_labels[i]}', alpha=0.7)
-    plt.plot(predictions[:, i], label=f'Predicted {output_labels[i]}', alpha=0.7)
-    plt.title(f'Prediction vs Actual for {output_labels[i]}')
+    plt.plot(actuals[:sample_range, i], label='Actual', marker='o')
+    plt.plot(predictions[:sample_range, i], label='Predicted', marker='x')
+    plt.title(f'{output_labels[i]} - Sample of {sample_range}')
     plt.xlabel('Sample')
     plt.ylabel('Value')
     plt.legend()
     plt.grid(True)
     plt.tight_layout()
     plt.show()
-import numpy as np
-'''
+
+for i in range(3):
+    residuals = actuals[:, i] - predictions[:, i]
+    plt.figure(figsize=(10, 4))
+    plt.hist(residuals, bins=40, alpha=0.7)
+    plt.title(f'Residuals Histogram for {output_labels[i]}')
+    plt.xlabel('Prediction Error (Actual - Predicted)')
+    plt.ylabel('Frequency')
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()
+
 # ==== Print Predictions vs Actuals ====
 output_labels = ["EALR_PFS", "EBLR_PFS", "EPLR_PFS"]
 
