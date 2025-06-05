@@ -136,6 +136,12 @@ with torch.no_grad():
     output_labels = ["EALR_PFS", "EBLR_PFS", "EPLR_PFS"]
     predictions = model(X_val_tensor.to(device)).cpu().numpy()
     actuals = y_val_tensor.numpy()
+print("----")
+
+mae = mean_absolute_error(actuals, val_preds)
+r2 = r2_score(actuals, val_preds)
+
+print(f"Overall R²: {r2:.4f}, Overall MAE: {mae:.4f}")
 
 for i, label in enumerate(output_labels):
     r2 = r2_score(actuals[:, i], predictions[:, i])
