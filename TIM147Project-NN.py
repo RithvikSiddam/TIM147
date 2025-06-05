@@ -44,29 +44,52 @@ val_loader = DataLoader(val_dataset, batch_size=batch_size)
 class FireRegressor(nn.Module):
     def __init__(self, input_size):
         super(FireRegressor, self).__init__()
-        self.fc1 = nn.Linear(input_size, 128)
-        self.fc2 = nn.Linear(128, 64)
+        self.fc1 = nn.Linear(input_size, 256)
+        self.bn1 = nn.BatchNorm1d(256)
+        self.dropout1 = nn.Dropout(0.3)
+
+        self.fc2 = nn.Linear(256, 128)
+        self.bn2 = nn.BatchNorm1d(128)
+        self.dropout2 = nn.Dropout(0.3)
+
+        self.fc3 = nn.Linear(128, 64)
+        self.bn3 = nn.BatchNorm1d(64)
+        self.dropout3 = nn.Dropout(0.3)
+
         self.output = nn.Linear(64, 3)
 
     def forward(self, x):
-        x = F.relu(self.fc1(x))
-        x = F.relu(self.fc2(x))
-        x = torch.sigmoid(self.output(x))  # Output in [0,1]
+        x = F.relu(self.bn1(self.fc1(x)))
+        x = self.dropout1(x)
+
+        x = F.relu(self.bn2(self.fc2(x)))
+        x = self.dropout2(x)
+
+        x = F.relu(self.bn3(self.fc3(x)))
+        x = self.dropout3(x)
+
+        x = torch.sigmoid(self.output(x))
         return x
+
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = FireRegressor(input_size=X_train_tensor.shape[1]).to(device)
 
 # ==== STEP 6: Optimizer & Loss ====
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
-loss_fn = nn.MSELoss()
-
+loss_fn = nn.SmoothL1Loss()
+scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+    optimizer, mode='min', patience=5, factor=0.5
+)
 # ==== STEP 7: Training Loop ====
 best_val_loss = float('inf')
 train_losses = []
 val_losses = []
 
-for epoch in range(50):
+early_stop_patience = 10
+no_improve_count = 0
+
+for epoch in range(100):
     model.train()
     total_loss = 0
     for X_batch, y_batch in train_loader:
@@ -88,15 +111,37 @@ for epoch in range(50):
             val_output = model(X_val_batch)
             val_loss += loss_fn(val_output, y_val_batch).item()
 
-    train_losses.append(total_loss)
+        train_losses.append(total_loss)
     val_losses.append(val_loss)
 
     print(f"Epoch {epoch + 1}, Train Loss: {total_loss:.4f}, Val Loss: {val_loss:.4f}")
 
-    # Save best model
     if val_loss < best_val_loss:
         best_val_loss = val_loss
         torch.save(model.state_dict(), "best_fire_model.pt")
+        no_improve_count = 0
+    else:
+        no_improve_count += 1
+
+    scheduler.step(val_loss)
+
+    if no_improve_count >= early_stop_patience:
+        print("Early stopping triggered.")
+        break
+
+from sklearn.metrics import mean_absolute_error, r2_score
+
+with torch.no_grad():
+    val_preds = model(X_val_tensor.to(device)).cpu().numpy()
+    output_labels = ["EALR_PFS", "EBLR_PFS", "EPLR_PFS"]
+    predictions = model(X_val_tensor.to(device)).cpu().numpy()
+    actuals = y_val_tensor.numpy()
+
+for i, label in enumerate(output_labels):
+    r2 = r2_score(actuals[:, i], predictions[:, i])
+    mae = mean_absolute_error(actuals[:, i], predictions[:, i])
+    print(f"{label}: R² = {r2:.4f}, MAE = {mae:.4f}")
+
 
 # ==== STEP 8: Load Best Model (Optional) ====
 # model.load_state_dict(torch.load("best_fire_model.pt"))
