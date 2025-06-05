@@ -58,6 +58,10 @@ print(f"\nOverall proportion of missing values in the dataset: {overall_missing_
 #df = df.drop(columns=["COUNTY"])
 #df = df.drop(columns=["DISCOVERY_TIME"])
 
+#df = df.drop(columns=["GHM"])
+#df = df.drop(columns=["TPI_1km"])
+#df = df.drop(columns=["RPL_THEMES"])
+
 #df = df.dropna()
 
 #df.to_csv("/Users/rithviks/Desktop/TIM147/FPA_FOD_Cleaned.csv", index=False)
