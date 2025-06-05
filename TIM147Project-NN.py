@@ -10,7 +10,7 @@ from sklearn.model_selection import train_test_split
 
 # ==== STEP 1: Define Features and Targets ====
 categorical_cols = ["OWNER_DESCR", "STATE", "Des_Tp", "EVT", "NPL", "FRG"]
-X = train_df[["DISCOVERY_DOY","FIRE_SIZE","LATITUDE","LONGITUDE","OWNER_DESCR","STATE","Des_Tp","EVT","rpms","pr_Normal","tmmn_Normal","tmmx_Normal","sph_Normal","srad_Normal","fm100_Normal","fm1000_Normal","bi_Normal","vpd_Normal","erc_Normal","DSF_PFS","EBF_PFS","PM25F_PFS","MHVF_PFS","LPF_PFS","NPL","RMP_PFS","TSDF_PFS","FRG","TRI_1km","Aspect_1km","Elevation_1km","Slope_1km","GHM","TPI_1km","RPL_THEMES","SDI","Annual_etr","Annual_precipitation","Annual_tempreture","Aridity_index","rmin","rmax","vs","NDVI-1day","CheatGrass","ExoticAnnualGrass","Medusahead","PoaSecunda"]]
+X = train_df[["DISCOVERY_DOY","FIRE_SIZE","LATITUDE","LONGITUDE","OWNER_DESCR","STATE","Des_Tp","EVT","rpms","pr_Normal","tmmn_Normal","tmmx_Normal","sph_Normal","srad_Normal","fm100_Normal","fm1000_Normal","bi_Normal","vpd_Normal","erc_Normal","DSF_PFS","EBF_PFS","PM25F_PFS","MHVF_PFS","LPF_PFS","NPL","RMP_PFS","TSDF_PFS","FRG","TRI_1km","Aspect_1km","Elevation_1km","Slope_1km","SDI","Annual_etr","Annual_precipitation","Annual_tempreture","Aridity_index","rmin","rmax","vs","NDVI-1day","CheatGrass","ExoticAnnualGrass","Medusahead","PoaSecunda"]]
 Y = train_df[["EALR_PFS", "EBLR_PFS", "EPLR_PFS"]]
 
 numerical_cols = [col for col in X.columns if col not in categorical_cols]
