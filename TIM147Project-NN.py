@@ -89,7 +89,7 @@ val_losses = []
 early_stop_patience = 10
 no_improve_count = 0
 
-for epoch in range(100):
+for epoch in range(250):
     model.train()
     total_loss = 0
     for X_batch, y_batch in train_loader:
@@ -150,7 +150,7 @@ for i, label in enumerate(output_labels):
 
 
 # ==== STEP 8: Load Best Model (Optional) ====
-# model.load_state_dict(torch.load("best_fire_model.pt"))
+model.load_state_dict(torch.load("best_fire_model.pt"))
 
 # Create visualizations
 import matplotlib.pyplot as plt
